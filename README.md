@@ -212,9 +212,11 @@ Implementação em `rl_parkour/mario_agent.gd` (`set_action()` → `RLMario.rl_*
 - **Recompensa:** `+1 × dano causado`, `+5 × abates`, `−1 × dano sofrido`,
   `−5 × mortes` (pesos ajustáveis: `damage_reward`, `kill_reward`,
   `damage_taken_penalty`, `death_penalty`, `survival_reward`).
-- **Combate** (`brawl_env.gd`): ataque com B/Z dentro de `attack_range` (2.0 m)
-  e `attack_cooldown` (0.5 s); `damage_wedges` por golpe; episódio até
-  `max_episode_steps` (900) ou restar ≤ 1 time vivo.
+- **Combate** (`brawl_env.gd`): ataque com B/Z dentro de `attack_range` e após
+  `attack_cooldown`; `damage_wedges` (1 por padrão) por golpe; episódio até
+  `max_episode_steps` ou restar ≤ 1 time vivo. Defaults no script: 2.0 m /
+  0.5 s / 900 passos — mas a cena de treino `brawl_main.tscn` define
+  **1.0 m / 1.0 s / 1000 passos, com 2 times de 3 Marios**.
 - **Políticas:** uma por time (`team_0`, `team_1`, …) — ver §7 e
   [`rl_brawl/README.rllib.md`](rl_brawl/README.rllib.md).
 
@@ -280,7 +282,8 @@ Como funciona:
 - Cada time vira uma política RLlib (`team_0`, `team_1`, …); o mapeamento
   agente→política segue a ordem de spawn (`_spawn_teams()`), replicada por
   ambiente — os argumentos `--num_teams`, `--team_size` e `--num_envs`
-  **precisam coincidir com a cena**.
+  **precisam coincidir com a cena** (defaults 2/3/4, iguais aos da
+  `brawl_main.tscn`).
 - O algoritmo é **MAPPO**: o ator usa a observação local e um **crítico
   centralizado** (`CentralCriticModel`) consome o estado global do ambiente.
 - Config padrão (`rllib_config.yaml`): PPO/Torch, rede `[256, 256]` ReLU,
