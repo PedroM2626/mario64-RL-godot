@@ -95,6 +95,9 @@ A parkour environment scene has been included under `rl_parkour/`.
 To train a modified Mario agent using Stable Baselines 3 and Godot RL Agents, run:
 `python rl_parkour/train.py --env_path build/export.x86_64`
 Training metrics are available via TensorBoard logs in the experiment directory.
+The `rl_parkour/train.py`, `rl_chase/train.py` and `rl_brawl/train.py` scripts
+are thin wrappers around the shared module `rl_common/train_sb3.py`
+(also usable via `python -m rl_common.train_sb3 ...`).
 
 ### Nota sobre Compatibilidade
 O `stable-baselines3==2.4.1` tem um bug de compatibilidade com `gymnasium>=1.0.0`. 
