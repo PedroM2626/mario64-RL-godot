@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://dprpekyttg0g6"]
+
+[ext_resource type="Script" path="res://libsm64_godot_demo/shared/hud/hud.gd" id="1_gwlej"]
+
+[node name="HUD" type="PanelContainer"]
+offset_right = 150.0
+offset_bottom = 104.0
+script = ExtResource("1_gwlej")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="MarioInfoLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Action: %s
+Health wedges: %d
+Invicibility Time: %.2f
+Face angle: %dº
+Forward velocity: %.2f"
+
+[node name="ReturnButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Return to Main Menu"
+
+[connection signal="pressed" from="VBoxContainer/ReturnButton" to="." method="_on_return_button_pressed"]
