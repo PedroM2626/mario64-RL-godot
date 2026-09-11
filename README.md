@@ -1,4 +1,6 @@
-# Mario RL — Super Mario 64 com Reinforcement Learning na Godot
+# mario64-RL-godot
+
+Super Mario 64 com Reinforcement Learning na Godot.
 
 Projeto que coloca o Mario do **Super Mario 64** (via emulação da engine original
 dentro da Godot) para aprender tarefas com **Reinforcement Learning**: parkour até
@@ -314,8 +316,8 @@ Presets (`export_presets.cfg`): **Windows Desktop** (`export/win64/*.exe`),
 
 ```bash
 # Export headless via Docker (imagem Godot 4.5.2)
-docker build -t libsm64-godot .
-docker run -it libsm64-godot
+docker build -t mario64-rl-godot .
+docker run -it mario64-rl-godot
 ```
 
 O **CI** (`.github/`) compila a GDExtension (Windows/Linux/macOS/Web, via
