@@ -1,0 +1,167 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-godot-cpp-debug",
+            "type": "shell",
+            "command": "scons target=template_debug use_mingw=yes generate_bindings=yes",
+            "presentation": {
+                "echo": true,
+                "revealProblems": "onProblem",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/extension/godot-cpp"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}/extension/godot-cpp"
+                ]
+            }
+        },
+        {
+            "label": "build-godot-cpp-release",
+            "type": "shell",
+            "command": "scons target=template_release use_mingw=yes generate_bindings=yes",
+            "presentation": {
+                "echo": true,
+                "revealProblems": "onProblem",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/extension/godot-cpp"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}/extension/godot-cpp"
+                ]
+            }
+        },
+        {
+            "label": "build-libsm64",
+            "type": "shell",
+            "command": "make -j`nproc`",
+            "presentation": {
+                "echo": true,
+                "revealProblems": "onProblem",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/extension/libsm64"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}/extension/libsm64"
+                ]
+            }
+        },
+        {
+            "label": "clean-libsm64",
+            "type": "shell",
+            "command": "make clean",
+            "presentation": {
+                "echo": true,
+                "revealProblems": "onProblem",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/extension/libsm64"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}/extension/libsm64"
+                ]
+            }
+        },
+        {
+            "label": "build-extension-debug",
+            "type": "shell",
+            "command": "scons target=template_debug use_mingw=yes generate_bindings=no build_library=no",
+            "presentation": {
+                "echo": true,
+                "revealProblems": "onProblem",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/extension",
+                "env": {
+                    "SCONS_CACHE": "${workspaceFolder}/extension/.scons_cache"
+                }
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": ["relative", "${workspaceFolder}/extension"]
+              }
+        },
+        {
+            "label": "build-extension-release",
+            "type": "shell",
+            "command": "scons target=template_release use_mingw=yes generate_bindings=no build_library=no",
+            "presentation": {
+                "echo": true,
+                "revealProblems": "onProblem",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/extension",
+                "env": {
+                    "SCONS_CACHE": "${workspaceFolder}/extension/.scons_cache"
+                }
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": ["relative", "${workspaceFolder}/extension"]
+              }
+        },
+        {
+            "label": "build-all-debug",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "build-godot-cpp-debug",
+                "clean-libsm64",
+                "build-libsm64",
+                "build-extension-debug"
+            ],
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build-all-release",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "build-godot-cpp-release",
+                "clean-libsm64",
+                "build-libsm64",
+                "build-extension-release"
+            ],
+            "problemMatcher": "$gcc"
+        }
+    ]
+}

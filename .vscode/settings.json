@@ -1,0 +1,18 @@
+{
+    "terminal.integrated.defaultProfile.windows": "MSYS2 MinGW x64",
+    "terminal.integrated.profiles.windows": {
+       "MSYS2 MinGW x64": {
+          "path": "C:\\msys64\\usr\\bin\\bash.exe",
+          "args": [
+             "--login",
+             "-i"
+          ],
+          "env": {
+             "MSYSTEM": "MINGW64",
+             "CHERE_INVOKING": "1",
+             "MSYS2_PATH_TYPE": "inherit"
+          }
+       }
+   },
+   "godotTools.editorPath.godot4": "c:\\Users\\pedro\\Downloads\\Godot_v4.5.2-stable_win64.exe\\Godot_v4.5.2-stable_win64.exe"
+}
