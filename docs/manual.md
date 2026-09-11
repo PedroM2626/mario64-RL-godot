@@ -60,12 +60,12 @@ Take note of the properties under the `Mario Inputs Actions` export group. These
 
 Add a new script on the root node. The following script snippet is a simple example on how to initialize the `libsm64` world and how to initialize the `LibSM64Mario` node.
 
-```Swift
+```gdscript
 extends Node3D
 
 
 @onready var libsm_64_mario: LibSM64Mario = $LibSM64Mario
-@onready var libsm_64_static_surface_handler: Node = $LibSM64StaticSurfaceHandler
+@onready var libsm_64_static_surface_handler: LibSM64StaticSurfacesHandler = $LibSM64StaticSurfacesHandler
 
 
 func _ready() -> void:
@@ -91,7 +91,7 @@ func _ready() -> void:
 func _on_tree_exiting() -> void:
 	# Clean up the `libsm64` world when the scene is freed.
 	libsm_64_mario.delete()
-	SM64Global.terminate()
+	LibSM64Global.terminate()
 ```
 
 If everything goes correctly, you should be able to run this scene and get it all to work.
@@ -102,18 +102,50 @@ If everything goes correctly, you should be able to run this scene and get it al
 
 ### Surface Objects
 
-TODO
+Static surfaces are loaded once with `LibSM64StaticSurfacesHandler.load_static_surfaces()` and cannot move afterwards (calling it again overwrites the whole world). For anything that moves — platforms, elevators, rotating bridges, doors — use surface objects.
+
+1. Add a `LibSM64SurfaceObjectsHandler` node to the scene.
+2. Add each moving `MeshInstance3D` / `CollisionObject3D` / `CollisionShape3D` to the `libsm64_surface_objects` group (or the custom group set in `surface_objects_group`).
+3. After `LibSM64Global.init()`, call `load_all_surface_objects()` (or `load_surface_object(node)` for a single node). The handler extracts the mesh faces **in local space** and registers the object with its current `global_transform` (position + rotation quaternion).
+4. Every physics tick (`LibSM64.tick_delta_time`, i.e. 1/30 s) the handler calls `LibSM64.surface_object_move(id, position, rotation)` automatically in `_physics_process()`, so just move the Godot node normally (via `AnimationPlayer`, code, etc.).
+5. When a node leaves the tree / is freed, its surface object is deleted automatically (`tree_exiting`). You can also call `delete_surface_object(node)` or `delete_all_surface_objects()` manually.
+
+Supported nodes are the same as for static surfaces (see `LibSM64SurfaceHandlerBase.get_faces_from_node()`): `MeshInstance3D`, `CollisionObject3D` (iterates its `CollisionShape3D` children) and `CollisionShape3D` with `BoxShape3D` or `ConcavePolygonShape3D`. Other shape types log an error and are skipped. Keep moving meshes as simple as possible.
+
+Example:
+
+```gdscript
+@onready var surface_objects_handler: LibSM64SurfaceObjectsHandler = $LibSM64SurfaceObjectsHandler
+
+func _ready() -> void:
+	LibSM64Global.load_rom_file(rom_filepath)
+	LibSM64Global.init()
+	$LibSM64StaticSurfacesHandler.load_static_surfaces()
+	surface_objects_handler.load_all_surface_objects()
+```
 
 ### Surface properties
 
-TODO
+Both handlers look for an optional `LibSM64SurfacePropertiesComponent` child on each surface node (`LibSM64SurfaceHandlerBase.find_surface_properties()`). If present, its `LibSM64SurfaceProperties` resource is passed per-triangle via `add_triangle_with_properties()`; otherwise `SURFACE_DEFAULT` / `TERRAIN_GRASS` is used.
+
+Add it like this: select the surface `MeshInstance3D`, add a child node of type `LibSM64SurfacePropertiesComponent`, create a new `LibSM64SurfaceProperties` resource in its `surface_properties` export and set:
+
+- `surface_type` (`LibSM64.SurfaceType`): physics behaviour. Useful values are `SURFACE_DEFAULT`, `SURFACE_NOT_SLIPPERY` (climbable), `SURFACE_SLIPPERY`, `SURFACE_VERY_SLIPPERY` / `SURFACE_ICE` (slides), `SURFACE_HARD` family (always fall damage), `SURFACE_BURNING` (lava damage), `SURFACE_DEATH_PLANE` (kills Mario), `SURFACE_WATER` / `SURFACE_FLOWING_WATER`, `SURFACE_HANGABLE` (ceilings Mario can hang from), `SURFACE_SLOW`, quicksand variants (`SURFACE_SHALLOW_QUICKSAND`, `SURFACE_DEEP_QUICKSAND`, …). Camera/painting/warp types exist but most have no effect outside the original SM64 levels.
+- `terrain_type` (`LibSM64.TerrainType`): mostly sound/particles — `TERRAIN_GRASS`, `TERRAIN_STONE`, `TERRAIN_SNOW`, `TERRAIN_SAND`, `TERRAIN_SPOOKY`, `TERRAIN_WATER`, `TERRAIN_SLIDE`.
+- `force`: extra parameter used by some surfaces (e.g. wind `SURFACE_HORIZONTAL_WIND` / `SURFACE_VERTICAL_WIND`, flowing water). Leave at `0` unless you know the surface needs it.
+
+The full lists live in `extension/src/libsm64.hpp` (`SurfaceType`, `TerrainType`, from `surface_terrains.h`).
 
 ## Quirks
 
 ### Have a big plane below your world added to the Static Surfaces
 
-TODO
+Static surfaces delimit the boundaries of the `libsm64` world in the XZ plane: Mario can only exist above them and hits "invisible walls" at their edges (see the warning on `LibSM64StaticSurfacesHandler.load_static_surfaces()`). If Mario walks/falls past the edge of your level geometry, he falls forever or gets stuck outside the world.
+
+Fix: always add a large, simple plane (e.g. 200×200 m) a few meters below the lowest point of the level to the `libsm64_static_surfaces` group. For RL scenes this doubles as a fail-safe floor so episodes can detect "fell" via height threshold and reset instead of hanging. Optionally give it `SURFACE_DEATH_PLANE` so falls kill Mario instead of leaving him stranded.
 
 ### Low poly mesh (make collion specific meshes)
 
-TODO
+Every triangle of every surface mesh is copied into `libsm64` (`get_faces()` → `LibSM64SurfaceArray.add_triangle()`), and collision runs at 30 Hz tick rate. High-poly visual meshes therefore tank performance and produce jittery collision.
+
+Best practice: build separate, invisible, low-poly collision meshes (boxes, simple concave shapes, decimated planes) and put only those in the `libsm64_static_surfaces` / `libsm64_surface_objects` groups. Reuse Godot `CollisionShape3D` boxes where possible — `LibSM64SurfaceHandlerBase` natively supports `BoxShape3D` and `ConcavePolygonShape3D`. Keep visual meshes out of the collision groups entirely, and prefer a handful of large triangles over hundreds of small ones.
