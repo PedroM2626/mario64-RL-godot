@@ -1,0 +1,14 @@
+# Separate environment for MAPPO via MARLlib (Ray 1.8.x based)
+# Use a clean venv for this file to avoid conflicts with Ray 2.x
+ray[rllib]==1.8.0
+marllib==1.0.3
+gym==0.20.0
+numpy==1.22
+protobuf==3.20.0
+
+# Keep Godot RL deps consistent with the project
+# If this combination fails in your environment, adjust versions in this file only
+godot-rl==0.8.2
+tensorboard==2.16.2
+pyyaml
+pettingzoo
