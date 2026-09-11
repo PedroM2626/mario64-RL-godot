@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3 uid="uid://chaseenv1234"]
+
+[ext_resource type="Script" uid="uid://bnu4ha08y3dt3" path="res://rl_chase/chase_env.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bbq30kpxivduk" path="res://addons/libsm64_godot/handlers/libsm64_static_surfaces_handler.gd" id="2_handler"]
+[ext_resource type="Script" uid="uid://pehu8qaxiqcj" path="res://rl_chase/chase_mario.gd" id="3_mario"]
+[ext_resource type="Script" uid="uid://yaiormmg83nb" path="res://rl_chase/chase_agent.gd" id="4_agent"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_plat"]
+size = Vector3(20, 1, 20)
+
+[sub_resource type="StandardMaterial3D" id="MatArena"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="ChaseEnv" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="LibSM64StaticSurfacesHandler" type="Node" parent="."]
+script = ExtResource("2_handler")
+
+[node name="Platforms" type="Node3D" parent="."]
+
+[node name="Arena" type="MeshInstance3D" parent="Platforms" groups=["libsm64_static_surfaces"]]
+mesh = SubResource("BoxMesh_plat")
+surface_material_override/0 = SubResource("MatArena")
+
+[node name="ChaserMario" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 5, 5)
+script = ExtResource("3_mario")
+tint_color = Color(1, 0, 0, 0.5)
+
+[node name="ChaserAgent" type="Node3D" parent="." node_paths=PackedStringArray("enemy", "mario")]
+script = ExtResource("4_agent")
+is_chaser = true
+enemy = NodePath("../RunnerMario")
+mario = NodePath("../ChaserMario")
+
+[node name="RunnerMario" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 5, -5)
+script = ExtResource("3_mario")
+tint_color = Color(0, 0, 1, 0.5)
+
+[node name="RunnerAgent" type="Node3D" parent="." node_paths=PackedStringArray("enemy", "mario")]
+script = ExtResource("4_agent")
+enemy = NodePath("../ChaserMario")
+mario = NodePath("../RunnerMario")

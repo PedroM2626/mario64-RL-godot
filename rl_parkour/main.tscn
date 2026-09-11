@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://mainparkour12"]
+
+[ext_resource type="Script" path="res://rl_parkour/main.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://rl_parkour/parkour_env.tscn" id="2_env"]
+[ext_resource type="PackedScene" path="res://rl_parkour/hud.tscn" id="3_hud"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_script")
+time_scale = 1.0
+num_envs = 4
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.0125488, 0.999921, 0, -0.999921, -0.0125488, 0, 10, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 20, 15, 30)
+
+[node name="ParkourEnv" parent="." instance=ExtResource("2_env")]
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]

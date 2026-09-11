@@ -1,0 +1,44 @@
+[gd_scene load_steps=7 format=3 uid="uid://dparkour1234"]
+
+[ext_resource type="Script" path="res://rl_parkour/parkour_env.gd" id="1_script"]
+[ext_resource type="Script" path="res://rl_parkour/rl_mario.gd" id="2_mario"]
+[ext_resource type="Script" path="res://rl_parkour/mario_agent.gd" id="3_agent"]
+[ext_resource type="Script" path="res://addons/libsm64_godot/handlers/libsm64_static_surfaces_handler.gd" id="4_handler"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_plat"]
+size = Vector3(10, 1, 10)
+
+[sub_resource type="BoxMesh" id="BoxMesh_target"]
+size = Vector3(1, 1, 1)
+
+[node name="ParkourEnv" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="LibSM64StaticSurfacesHandler" type="Node" parent="."]
+script = ExtResource("4_handler")
+
+[node name="Platforms" type="Node3D" parent="."]
+
+[node name="StartPlatform" type="MeshInstance3D" parent="Platforms" groups=["libsm64_static_surfaces"]]
+mesh = SubResource("BoxMesh_plat")
+
+[node name="MidPlatform" type="MeshInstance3D" parent="Platforms" groups=["libsm64_static_surfaces"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -7)
+mesh = SubResource("BoxMesh_plat")
+
+[node name="EndPlatform" type="MeshInstance3D" parent="Platforms" groups=["libsm64_static_surfaces"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -15)
+mesh = SubResource("BoxMesh_plat")
+
+[node name="Target" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -15)
+mesh = SubResource("BoxMesh_target")
+
+[node name="RLMario" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+script = ExtResource("2_mario")
+
+[node name="MarioAgent" type="Node3D" parent="." node_paths=PackedStringArray("mario", "target_node")]
+script = ExtResource("3_agent")
+mario = NodePath("../RLMario")
+target_node = NodePath("../Target")
