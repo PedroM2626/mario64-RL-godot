@@ -1,0 +1,277 @@
+name: 🛠️ Builds
+
+on:
+  push:
+    paths:
+      - extension/**
+      - .github/actions/**
+      - .github/workflows/**
+  pull_request:
+  workflow_dispatch:
+
+env:
+  SCONS_CACHE: ${{ github.workspace }}/extension/.scons-cache/
+
+jobs:
+  sanitize_ref_name:
+    name: Sanitize "ref_name"
+    runs-on: ubuntu-latest
+    outputs:
+      sanitized_ref_name: ${{ steps.sanitize_github_ref_name.outputs.new_ref_name }}
+    steps:
+      - name: Sanitize "github.ref_name"
+        id: sanitize_github_ref_name
+        env:
+          github_ref_name: ${{ github.ref_name }}
+        run: |
+          SANITIZED_REF_NAME=$(echo -n "${{ env.github_ref_name }}" | tr "/" "-")
+          echo "Sanitized ref_name: $SANITIZED_REF_NAME"
+          echo "new_ref_name=$SANITIZED_REF_NAME" >> $GITHUB_OUTPUT;
+
+  # ============================================
+
+  windows-gdextension:
+    name: 🏁 Windows
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64]
+        target: [template_debug, template_release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compile GDExtension
+        uses: ./.github/actions/compile_gdextension
+        with:
+          platform: windows
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          artifact: ${{ github.event.repository.name }}-gdextension.windows.${{ matrix.target }}.${{ matrix.arch }}
+          additional: lto=auto
+
+  # ============================================
+
+  linux-gdextension:
+    name: 🐧 Linux
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64]
+        target: [template_debug, template_release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compile GDExtension
+        uses: ./.github/actions/compile_gdextension
+        with:
+          platform: linux
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          artifact: ${{ github.event.repository.name }}-gdextension.linux.${{ matrix.target }}.${{ matrix.arch }}
+          additional: lto=auto
+
+  # ============================================
+
+  macos-gdextension:
+    name: 🍏 MacOS
+    runs-on: macos-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [universal]
+        target: [template_debug, template_release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compile GDExtension
+        uses: ./.github/actions/compile_gdextension
+        with:
+          platform: macos
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          artifact: ${{ github.event.repository.name }}-gdextension.macos.${{ matrix.target }}.${{ matrix.arch }}
+          additional: lto=auto
+
+  # ============================================
+
+  web-gdextension:
+    name: 🕸 Web
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [wasm32]
+        target: [template_debug, template_release]
+        threads: [yes, no]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compile GDExtension
+        uses: ./.github/actions/compile_gdextension
+        with:
+          platform: web
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          artifact: ${{ github.event.repository.name }}-gdextension.web.${{ matrix.target }}.${{ matrix.arch }}.threads_${{ matrix.threads }}
+          additional: lto=auto threads=${{ matrix.threads }}
+
+  # ============================================
+
+  output-artifacts:
+    name: Build the addon, project and export demo
+    needs:
+      [
+        sanitize_ref_name,
+        windows-gdextension,
+        linux-gdextension,
+        macos-gdextension,
+        web-gdextension,
+      ]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    env:
+      ref_name: ${{ needs.sanitize_ref_name.outputs.sanitized_ref_name }}
+      release_name: ${{ github.event.repository.name }}.${{ needs.sanitize_ref_name.outputs.sanitized_ref_name }}
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Download GDExtension binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ github.event.repository.name }}-gdextension.*
+          path: ${{ github.workspace }}/addons/libsm64_godot/extension/bin
+          merge-multiple: true
+
+      - name: Install wine
+        id: wine_install
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          sudo apt install -y wine64 wine32
+          echo "WINE_PATH=$(which wine)" >> $GITHUB_OUTPUT
+
+      - name: Export demo
+        id: demo_export
+        uses: firebelley/godot-export@v7.0.0
+        with:
+          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          relative_project_path: ./
+          archive_output: true
+          cache: true
+          wine_path: ${{ steps.wine_install.outputs.wine_path }}
+
+      - name: Upload Windows demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-demo.${{ env.ref_name }}.windows
+          path: ${{ steps.demo_export.outputs.build_directory }}/Windows Desktop
+
+      - name: Upload Linux demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-demo.${{ env.ref_name }}.linux
+          path: ${{ steps.demo_export.outputs.build_directory }}/LinuxX11
+
+      - name: Upload macOS demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-demo.${{ env.ref_name }}.macos
+          path: ${{ steps.demo_export.outputs.build_directory }}/macOS
+
+      - name: Upload Web demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-demo.${{ env.ref_name }}.web
+          path: ${{ steps.demo_export.outputs.build_directory }}/Web
+
+      - name: Rename archives
+        run: |
+          cd ${{ steps.demo_export.outputs.archive_directory }}
+          mv "Windows Desktop.zip" "${{ github.event.repository.name }}-demo.${{ env.ref_name }}.windows.zip"
+          mv "macOS.zip"           "${{ github.event.repository.name }}-demo.${{ env.ref_name }}.mac.zip"
+          mv "LinuxX11.zip"        "${{ github.event.repository.name }}-demo.${{ env.ref_name }}.linux.zip"
+          mv "Web.zip"             "${{ github.event.repository.name }}-demo.${{ env.ref_name }}.web.zip"
+          mv "Web(PWA).zip"        "${{ github.event.repository.name }}-demo.${{ env.ref_name }}.web.pwa.zip"
+          mv "Web(nothreads).zip"  "${{ github.event.repository.name }}-demo.${{ env.ref_name }}.web.nothreads.zip"
+
+      - name: Copy extra files to addon
+        run: |
+          cp -n '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/addons/libsm64_godot/'
+
+      - name: Make release zip
+        run: |
+          mkdir ${{ env.release_name }}
+          cp -r addons ${{ env.release_name }}
+          cp -r libsm64_godot_demo ${{ env.release_name }}
+          7z a -tzip ${{ env.release_name }}.zip ${{ env.release_name }}
+
+      - name: Upload release
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.release_name }}.zip
+          path: ${{ env.release_name }}.zip
+
+      - name: Make release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          body: See [CHANGES.md](https://github.com/Brawmario/libsm64-godot/blob/master/CHANGES.md) for details.
+          files: |
+            ${{ env.release_name }}.zip
+            ${{ steps.demo_export.outputs.archive_directory }}/*
+
+      - name: Install Butler
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          curl -L -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          7z x butler.zip
+          sudo cp butler /usr/bin
+          sudo chmod +x /usr/bin/butler
+          butler -V
+
+      - name: Butler upload
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_USER: brawmario
+          ITCH_GAME: libsm64-godot-demo
+          WINDOWS_ARCHIVE: ${{ steps.demo_export.outputs.archive_directory }}/${{ github.event.repository.name }}-demo.${{ env.ref_name }}.windows.zip
+          MACOS_ARCHIVE: ${{ steps.demo_export.outputs.archive_directory }}/${{ github.event.repository.name }}-demo.${{ env.ref_name }}.mac.zip
+          LINUX_ARCHIVE: ${{ steps.demo_export.outputs.archive_directory }}/${{ github.event.repository.name }}-demo.${{ env.ref_name }}.linux.zip
+          WEB_ARCHIVE: ${{ steps.demo_export.outputs.archive_directory }}/${{ github.event.repository.name }}-demo.${{ env.ref_name }}.web.zip
+        run: |
+          butler push "${{ env.WINDOWS_ARCHIVE }}" ${{ env.ITCH_USER }}/${{ env.ITCH_GAME }}:windows --userversion ${{ env.ref_name }}
+          butler push "${{ env.MACOS_ARCHIVE }}"   ${{ env.ITCH_USER }}/${{ env.ITCH_GAME }}:mac     --userversion ${{ env.ref_name }}
+          butler push "${{ env.LINUX_ARCHIVE }}"   ${{ env.ITCH_USER }}/${{ env.ITCH_GAME }}:linux   --userversion ${{ env.ref_name }}
+          butler push "${{ env.WEB_ARCHIVE }}"     ${{ env.ITCH_USER }}/${{ env.ITCH_GAME }}:web     --userversion ${{ env.ref_name }}
+
+      - name: Deploy to Github Pages
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: ${{ steps.demo_export.outputs.build_directory }}/Web(PWA)
