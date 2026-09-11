@@ -16,7 +16,7 @@ You can get the addon from the [Godot Asset Library](https://godotengine.org/ass
 
 ## Current Godot compatibility
 
-Currently compatible with Godot 4.3.x, with binaries compiled for Windows (x86_64), macOS (universal), Linux (x86_64) and Web (threaded and no threads builds).
+Currently compatible with Godot 4.5.2, with binaries compiled for Windows (x86_64), macOS (universal), Linux (x86_64) and Web (threaded and no threads builds).
 
 ## How to compile the GDExtension
 
@@ -93,7 +93,7 @@ The `requirements.txt` file tracks Python dependencies used for Reinforcement Le
 ## Reinforcement Learning Training
 A parkour environment scene has been included under `rl_parkour/`. 
 To train a modified Mario agent using Stable Baselines 3 and Godot RL Agents, run:
-`python rl_parkour/train.py --env_path build/export.x86_64`
+`python rl_parkour/train.py --env_path export/linux64/libsm64-godot-demo.x86_64`
 Training metrics are available via TensorBoard logs in the experiment directory.
 The `rl_parkour/train.py`, `rl_chase/train.py` and `rl_brawl/train.py` scripts
 are thin wrappers around the shared module `rl_common/train_sb3.py`
