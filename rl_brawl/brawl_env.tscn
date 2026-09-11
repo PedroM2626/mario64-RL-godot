@@ -1,0 +1,22 @@
+[gd_scene load_steps=6 format=3 uid="uid://brawlenv1234"]
+
+[ext_resource type="Script" path="res://rl_brawl/brawl_env.gd" id="1_script"]
+[ext_resource type="Script" path="res://addons/libsm64_godot/handlers/libsm64_static_surfaces_handler.gd" id="2_handler"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_arena"]
+size = Vector3(30, 1, 30)
+
+[sub_resource type="StandardMaterial3D" id="MatArena"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="BrawlEnv" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="LibSM64StaticSurfacesHandler" type="Node" parent="."]
+script = ExtResource("2_handler")
+
+[node name="Platforms" type="Node3D" parent="."]
+
+[node name="Arena" type="MeshInstance3D" parent="Platforms" groups=["libsm64_static_surfaces"]]
+mesh = SubResource("BoxMesh_arena")
+surface_material_override/0 = SubResource("MatArena")

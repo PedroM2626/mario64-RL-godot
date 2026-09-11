@@ -1,0 +1,37 @@
+env_is_multiagent: true
+algorithm: PPO
+checkpoint_frequency: 10
+
+config:
+  env: godot
+  framework: torch
+  env_config:
+    env_path: null
+    show_window: false
+    action_repeat: 1
+    speedup: 1.0
+  
+  # num_env_runners=0 means only the local worker runs, which creates the env
+  # on port 11008 (DEFAULT_PORT + 0). This is the standard pattern for
+  # connecting to a Godot editor instance via godot_rl.
+  num_env_runners: 0
+  num_envs_per_env_runner: 1
+  num_gpus: 0
+  
+  model:
+    custom_model: central_critic_model
+    vf_share_layers: false
+    fcnet_hiddens: [256, 256]
+    fcnet_activation: relu
+    free_log_std: true
+    
+  observation_filter: MeanStdFilter
+    
+  train_batch_size: 4000
+  sgd_minibatch_size: 128
+  num_sgd_iter: 10
+  lr: 0.0003
+  clip_param: 0.2
+  
+stop:
+  timesteps_total: 1000000
