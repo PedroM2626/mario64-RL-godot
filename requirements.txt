@@ -1,8 +1,14 @@
-stable-baselines3==2.4.1
-gymnasium==1.0.0
-shimmy==2.0.0
+# SB3 >= 2.5 reescreveu o VecVideoRecorder para a API do gymnasium 1.x
+# (RecordVideo), de modo que NAO e mais necessario o patch manual descrito
+# em SB3_COMPATIBILITY_FIX.md (comentar o import no venv). Verificado:
+# `from stable_baselines3.common.vec_env import VecVideoRecorder` importa
+# sem erro com este pin.
+stable-baselines3==2.9.0
+gymnasium==1.3.0
+shimmy>=2.0.0
 godot-rl==0.8.2
 tensorboard==2.16.2
+numpy>=1.26
 ray[rllib]
 pettingzoo
 pyyaml

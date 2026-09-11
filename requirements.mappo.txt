@@ -1,5 +1,8 @@
-# Separate environment for MAPPO via MARLlib (Ray 1.8.x based)
-# Use a clean venv for this file to avoid conflicts with Ray 2.x
+# LEGACY / ISOLATED environment for MAPPO via MARLlib (Ray 1.8.x based).
+# Use a clean venv for this file to avoid conflicts with Ray 2.x.
+# DO NOT install this together with requirements.txt (SB3 stack): the
+# gym==0.20.0 + numpy==1.22 pins below conflitam com gymnasium 1.x / numpy>=1.26.
+# RLlib moderno (train_rllib_mappo.py) usa o `ray[rllib]` do requirements.txt.
 ray[rllib]==1.8.0
 marllib==1.0.3
 gym==0.20.0

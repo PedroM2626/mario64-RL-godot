@@ -95,11 +95,12 @@ A parkour environment scene has been included under `rl_parkour/`.
 To train a modified Mario agent using Stable Baselines 3 and Godot RL Agents, run:
 `python rl_parkour/train.py --env_path export/linux64/libsm64-godot-demo.x86_64`
 Training metrics are available via TensorBoard logs in the experiment directory.
-The `rl_parkour/train.py`, `rl_chase/train.py` and `rl_brawl/train.py` scripts
-are thin wrappers around the shared module `rl_common/train_sb3.py`
-(also usable via `python -m rl_common.train_sb3 ...`).
 
 ### Nota sobre Compatibilidade
-O `stable-baselines3==2.4.1` tem um bug de compatibilidade com `gymnasium>=1.0.0`. 
-Foi aplicada uma correção manual no ambiente virtual (ver `SB3_COMPATIBILITY_FIX.md`).
-Para novas instalações, as versões compatíveis estão especificadas no `requirements.txt`.
+O `requirements.txt` fixa `stable-baselines3==2.9.0` + `gymnasium==1.3.0`,
+combinação na qual o `VecVideoRecorder` importa sem erro (sem patch manual).
+O `SB3_COMPATIBILITY_FIX.md` é mantido apenas como registro histórico do venv
+antigo (`SB3==2.4.1` + `gymnasium==1.0.0`).
+Os scripts `rl_parkour/train.py`, `rl_chase/train.py` e `rl_brawl/train.py`
+são wrappers finos do módulo comum `rl_common/train_sb3.py`
+(também utilizável via `python -m rl_common.train_sb3 ...`).

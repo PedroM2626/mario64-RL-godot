@@ -1,6 +1,13 @@
-# Correção de Compatibilidade Stable-Baselines3
+# Correção de Compatibilidade Stable-Baselines3 (OBSOLETO)
 
-## Problema
+> **Status (2026): obsoleto.** O `requirements.txt` agora fixa `stable-baselines3==2.9.0`
+> + `gymnasium==1.3.0`, combinação na qual o `VecVideoRecorder` já usa a API
+> `RecordVideo` do gymnasium 1.x e importa sem erro. **Não aplique o patch
+> manual abaixo em instalações novas** — ele desativa a gravação de vídeo à toa.
+> Este arquivo é mantido apenas como registro histórico para quem ainda usa o
+> venv antigo (`.venv311` com `stable-baselines3==2.4.1` + `gymnasium==1.0.0`).
+
+## Problema (venv antigo)
 O `stable-baselines3==2.4.1` tem um bug de compatibilidade com `gymnasium>=1.0.0`. 
 O erro ocorre no arquivo:
 ```
@@ -29,7 +36,12 @@ Esta correção desativa a funcionalidade de gravação de vídeo do VecVideoRec
 mas não afeta o treinamento RL normal. Se precisar de gravação de vídeo, 
 use o `RecordVideo` do gymnasium diretamente.
 
-## Versões Compatíveis
+## Versões Compatíveis (instalação nova, sem patch)
+- stable-baselines3==2.9.0
+- gymnasium==1.3.0
+- shimmy>=2.0.0
+
+## Versões do venv antigo (com patch, não usar em instalações novas)
 - stable-baselines3==2.4.1
 - gymnasium==1.0.0
 - shimmy==2.0.0
